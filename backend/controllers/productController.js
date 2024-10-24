@@ -55,7 +55,7 @@ export const recheckPrice = async (req, res) => {
     const updatedProductData = await scrapeProduct(product.url);
     product.currentPrice = updatedProductData.price;
     product.priceHistory.push({
-      price: updatedProductData.currentPrice,
+      currentPrice: updatedProductData.price,
       timestamp: new Date(),
     });
 

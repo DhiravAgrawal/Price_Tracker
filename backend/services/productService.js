@@ -2,8 +2,13 @@ import puppeteer from 'puppeteer';
 
 export const scrapeProduct = async (url) => {
   try {
-    // Launch Puppeteer in headless mode
-    const browser = await puppeteer.launch({ headless: true });
+
+    const browser = await puppeteer.launch({
+      executablePath: '/opt/render/.cache/puppeteer/chrome',  // Set correct path to Chrome
+      headless: true,  // Keep headless mode for scraping
+      args: ['--no-sandbox', '--disable-setuid-sandbox']  // Required for running Puppeteer on Render
+    });
+  
     const page = await browser.newPage();
 
     // Set a user-agent to avoid being blocked

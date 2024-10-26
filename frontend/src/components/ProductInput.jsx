@@ -29,7 +29,7 @@ const ProductInput = ({ onAddProduct }) => {
     } finally {
       setLoading(false);  // Reset the loading state once the request is complete
     }
-    // window.location.reload();
+    window.location.reload();
   };
 
   return (

@@ -2,32 +2,28 @@ import puppeteer from 'puppeteer';
 
 export const scrapeProduct = async (url) => {
   try {
-
-    const browser = await puppeteer.launch({
-      executablePath: '/opt/render/.cache/puppeteer/chrome',  // Set correct path to Chrome
-      headless: true,  // Keep headless mode for scraping
-      args: ['--no-sandbox', '--disable-setuid-sandbox']  // Required for running Puppeteer on Render
-    });
-  
+    // Launch Puppeteer in headless mode
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
     // Set a user-agent to avoid being blocked
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
 
-    // Go to the product page
+    // Navigate to the product page
     await page.goto(url, { waitUntil: 'networkidle2' });
 
-    // Wait for the title, price, and description elements to appear
+    // Wait for necessary elements to appear on the page
     await page.waitForSelector('h1._6EBuvT span.VU-ZEz');
     await page.waitForSelector('div.Nx9bqj');
-    // await page.waitForSelector('div.Xbd0Sd p');
     await page.waitForSelector('div.ipqd2A');
 
     // Scraping the necessary details
     const productData = await page.evaluate(() => {
       const title = document.querySelector('h1._6EBuvT span.VU-ZEz')?.innerText || 'No Title';
       const price = document.querySelector('div.Nx9bqj')?.innerText || 'No Price';
-      const description = document.querySelector('div.Xbd0Sd p')?.innerText || 'No Description';
+      const description = document.querySelector('div.Xbd0Sd p')?.innerText || 
+                          document.querySelector('div.yN\\+eNk.w9jEaj')?.innerText || 
+                          'No Description';
       
       // Scrape up to 3 reviews
       const reviews = Array.from(document.querySelectorAll('div.col.EPCmJX')).slice(0, 3).map(review => {
@@ -36,12 +32,7 @@ export const scrapeProduct = async (url) => {
         return { reviewText, username };
       });
 
-      return {
-        title,
-        price,
-        description,
-        reviews
-      };
+      return { title, price, description, reviews };
     });
 
     // Close the browser
@@ -50,13 +41,7 @@ export const scrapeProduct = async (url) => {
     return productData;
 
   } catch (error) {
-    console.error('Error scraping Flipkart:', error);
-    return null;
+    console.error('Error scraping product:', error);
+    return null; // Return null in case of error
   }
 };
-
-// Example usage:
-// const productUrl = 'https://www.flipkart.com/lg-185-l-direct-cool-single-door-5-star-refrigerator/p/itme111bace73d90?pid=RFRGMFGQDSZT8QJN';
-// scrapeProduct(productUrl).then((data) => {
-//   console.log('Scraped Product Data:', data);
-// });

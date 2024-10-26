@@ -4,11 +4,11 @@ import mongoose from 'mongoose';
 const reviewSchema = new mongoose.Schema({
   reviewText: {
     type: String,
-    // required: true,  // Ensure review text is provided
+    // required: true,  // Uncomment to ensure review text is provided
   },
   username: {
     type: String,
-    // required: true,  // Ensure username is provided
+    // required: true,  // Uncomment to ensure username is provided
   }
 });
 
@@ -35,11 +35,11 @@ const productSchema = new mongoose.Schema({
     required: true,
     min: 0,  // Price must be a non-negative number
   },
-  reviews: [reviewSchema],  // Changed to an array of review objects
+  reviews: [reviewSchema],  // Array of review objects
   priceHistory: [{
     price: { 
       type: String, 
-      min: 0, 
+      min: 0,  // Price must be a non-negative number
     },
     timestamp: {
       type: Date,
@@ -49,9 +49,7 @@ const productSchema = new mongoose.Schema({
   productId: {
     type: String,
     unique: true,
-    default: function () {
-      return new mongoose.Types.ObjectId();  // Generate unique ID for each product
-    }
+    default: () => new mongoose.Types.ObjectId(),  // Generate unique ID for each product
   }
 });
 

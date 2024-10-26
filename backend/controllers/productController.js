@@ -9,21 +9,26 @@ export const addProduct = async (req, res) => {
     // Check if the product already exists based on the URL
     const existingProduct = await Product.findOne({ url });
     if (existingProduct) {
-      return res.status(400).json({ message: 'Product details already exist for this URL.', product: existingProduct });
+      return res.status(400).json({ 
+        message: 'Product details already exist for this URL.', 
+        product: existingProduct 
+      });
     }
 
+    // Scrape product data from the provided URL
     const productData = await scrapeProduct(url);
-    console.log(productData);
-
+    
+    // Create a new product instance with scraped data
     const newProduct = new Product({
       url,
       title: productData.title,
       description: productData.description,
       currentPrice: productData.price,
-      reviews: productData.reviews,  // Updated to use productData.reviews
+      reviews: productData.reviews,  // Use scraped reviews
       priceHistory: [{ price: productData.price, timestamp: new Date() }],
     });
 
+    // Save the new product to the database
     await newProduct.save();
     res.json(newProduct);
   } catch (error) {
@@ -31,11 +36,10 @@ export const addProduct = async (req, res) => {
   }
 };
 
-
 // Controller: Get all products with their details
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find(); // Fetch all products
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -44,7 +48,7 @@ export const getAllProducts = async (req, res) => {
 
 // Controller: Recheck the price of an existing product
 export const recheckPrice = async (req, res) => {
-  const { url } = req.body; // Assume you pass the URL in the body
+  const { url } = req.body; // Assume the URL is passed in the body
 
   try {
     const product = await Product.findOne({ url });
@@ -52,13 +56,17 @@ export const recheckPrice = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
+    // Scrape updated product data
     const updatedProductData = await scrapeProduct(product.url);
+    
+    // Update current price and price history
     product.currentPrice = updatedProductData.price;
     product.priceHistory.push({
       currentPrice: updatedProductData.price,
       timestamp: new Date(),
     });
 
+    // Save the updated product data
     await product.save();
     res.json(product);
   } catch (error) {
@@ -71,16 +79,20 @@ export const searchProducts = async (req, res) => {
   const { title, minPrice, maxPrice } = req.query;
   const filter = {};
 
+  // Build filter based on query parameters
   if (title) {
-    filter.title = { $regex: title, $options: 'i' };
+    filter.title = { $regex: title, $options: 'i' }; // Case-insensitive search
   }
 
   if (minPrice && maxPrice) {
-    filter.currentPrice = { $gte: parseInt(minPrice), $lte: parseInt(maxPrice) };
+    filter.currentPrice = { 
+      $gte: parseInt(minPrice), 
+      $lte: parseInt(maxPrice) 
+    };
   }
 
   try {
-    const products = await Product.find(filter);
+    const products = await Product.find(filter); // Fetch products based on filter
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -98,7 +110,6 @@ export const getProductById = async (req, res) => {
     }
     res.status(200).json(product); // Return the product data
   } catch (error) {
-    console.error('Error fetching product:', error);
     res.status(500).json({ message: 'Server error' }); // Handle server errors
   }
-}
+};
